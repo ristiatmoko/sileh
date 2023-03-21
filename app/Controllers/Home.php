@@ -9,4 +9,10 @@ class Home extends BaseController
         // return view('welcome_message');
         echo "hello world";
     }
+
+    public function coba()
+    {
+        // return view('welcome_message');
+        echo "hello world";
+    }
 }
