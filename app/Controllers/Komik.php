@@ -7,6 +7,7 @@ use App\Models\M_komik;
 class Komik extends BaseController
 {
     protected $M_komik;
+    protected $helpers = ['form'];
 
     public function __construct()
     {
@@ -42,9 +43,10 @@ class Komik extends BaseController
 
     public function create()
     {
+        // session();
         $data = [
             'title' => 'Form tambah data komik',
-
+            'validation' => \Config\Services::validation()
         ];
 
         return view('komik/v_create', $data);
@@ -53,6 +55,15 @@ class Komik extends BaseController
     public function save()
     {
         // dd($this->request->getVar());
+        if (!$this->validate([
+            'judul' => 'required|is_unique[komik.judul]'
+        ])) {
+            $validation = \Config\Services::validation();
+            // dd($validation);
+            return redirect()->to('/komik/create')->withInput()->with('validation', $validation);
+        }
+
+
         $slug = url_title($this->request->getVar('judul'), '-', true);
         $this->M_komik->save([
             'judul' => $this->request->getVar('judul'),
