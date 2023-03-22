@@ -31,7 +31,14 @@ $routes->set404Override();
 // route since we don't have to scan directories.
 
 $routes->get('/', 'Pages::index');
-$routes->get('/Komik/(:segment)', 'Komik::detail/$1');
+
+$routes->get('/komik/create', 'Komik::create');
+$routes->get('/komik/edit/(:num)', 'Komik::edit/$1');
+
+$routes->delete('/komik/(:num)', 'Komik::delete/$1');
+
+$routes->get('/Komik/(:any)', 'Komik::detail/$1');
+
 
 
 
