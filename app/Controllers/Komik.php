@@ -62,11 +62,34 @@ class Komik extends BaseController
                     'required' => '{field} komik harus diisi.',
                     'is_unique' => '{field} komik sudah terdaftar'
                 ]
+            ],
+            'sampul' => [
+                'rules' => 'max_size[sampul,1024]|is_image[sampul]|mime_in[sampul,image/jpg,image/jpeg,image/png]',
+                'errors' => [
+                    // 'uploaded' => 'pilih gambar terlebih dahulu',
+                    'max_size' => 'ukuran gambar terlalu besar',
+                    'is_image' => 'yang anda pilih bukan gambar',
+                    'mime_in' => 'yang anda pilih bukan gambar',
+                ]
             ]
         ])) {
             // $validation = \Config\Services::validation();
             // dd($validation);
             return redirect()->to('/komik/create')->withInput();
+        }
+
+        // ambil gambar
+        $fileSampul = $this->request->getFile('sampul');
+
+        // apakah tidak ada gambar yg diupload
+        if ($fileSampul->getError() == 4) {
+            $namaSampul = 'default.jpg';
+        } else {
+            // generate nama file random
+            $namaSampul = $fileSampul->getRandomName();
+
+            // pindahkan file gambar
+            $fileSampul->move('img', $namaSampul);
         }
 
 
@@ -76,7 +99,7 @@ class Komik extends BaseController
             'slug' => $slug,
             'penulis' => $this->request->getVar('penulis'),
             'penerbit' => $this->request->getVar('penerbit'),
-            'sampul' => $this->request->getVar('sampul')
+            'sampul' => $namaSampul
         ]);
 
         session()->setFlashdata('pesan', 'data berhasil ditambahkan');
@@ -85,6 +108,15 @@ class Komik extends BaseController
 
     public function delete($id_komik)
     {
+        // cari gambar berdasarkan id
+        $komik = $this->M_komik->find($id_komik);
+
+        // cek jika file gambarnya default.jpg
+        if ($komik['sampul'] != 'default.jpg') {
+            // hapus gambar
+            unlink('img/' . $komik['sampul']);
+        }
+
         $this->M_komik->delete($id_komik);
         session()->setFlashdata('pesan', 'data berhasil dihapus');
 
@@ -118,11 +150,36 @@ class Komik extends BaseController
                     'required' => '{field} komik harus diisi.',
                     'is_unique' => '{field} komik sudah terdaftar'
                 ]
+            ],
+            'sampul' => [
+                'rules' => 'max_size[sampul,1024]|is_image[sampul]|mime_in[sampul,image/jpg,image/jpeg,image/png]',
+                'errors' => [
+                    // 'uploaded' => 'pilih gambar terlebih dahulu',
+                    'max_size' => 'ukuran gambar terlalu besar',
+                    'is_image' => 'yang anda pilih bukan gambar',
+                    'mime_in' => 'yang anda pilih bukan gambar',
+                ]
             ]
         ])) {
             // $validation = \Config\Services::validation();
             // dd($validation);
             return redirect()->to('/komik/edit/' . $this->request->getVar('slug'))->withInput();
+        }
+
+        $fileSampul = $this->request->getFile('sampul');
+
+        // cek apakah gambar lama
+        if ($fileSampul->getError() == 4) {
+            $namaSampul = $this->request->getVar('sampulLama');
+        } else {
+            // generate nama file gambar random
+            $namaSampul = $fileSampul->getRandomName();
+            // pndahkan gambar
+            $fileSampul->move('img', $namaSampul);
+            // hapus file yg lama
+            if ($this->request->getVar('sampulLama') != 'default.jpg') {
+                unlink('img/' . $this->request->getVar('sampulLama'));
+            }
         }
 
 
@@ -133,7 +190,7 @@ class Komik extends BaseController
             'slug' => $slug,
             'penulis' => $this->request->getVar('penulis'),
             'penerbit' => $this->request->getVar('penerbit'),
-            'sampul' => $this->request->getVar('sampul')
+            'sampul' => $namaSampul
         ]);
 
         session()->setFlashdata('pesan', 'data berhasil diubah');
